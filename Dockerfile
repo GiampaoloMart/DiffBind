@@ -17,12 +17,6 @@ RUN apt-get update && \
     libjpeg-dev \
     libtiff-dev \
     libpq-dev \
-    pandoc \
-    pandoc-citeproc \
-    texlive-base \
-    texlive-latex-base \
-    texlive-latex-recommended \
-    texlive-fonts-recommended \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
