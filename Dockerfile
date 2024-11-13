@@ -1,62 +1,47 @@
-# Use the rocker/rstudio image as the base, which includes R and RStudio
+# Usa l'immagine di base RStudio con R preinstallato
 FROM rocker/rstudio:latest
 
-# Set environment variables
+# Setta le variabili di ambiente per evitare richieste interattive
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install apt-utils to handle missing package configuration
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends apt-utils
-
-# Install system dependencies in smaller chunks to catch errors
+# Aggiorna apt e installa alcune librerie di sistema necessarie
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     libcurl4-openssl-dev \
     libssl-dev \
     libxml2-dev \
     libcairo2-dev \
-    libxt-dev
-
-RUN apt-get install -y --no-install-recommends \
+    libxt-dev \
     libgsl0-dev \
     libpng-dev \
     libjpeg-dev \
     libtiff-dev \
-    libpq-dev
-
-# Install TeX Live and pandoc for knitting to PDF
-RUN apt-get install -y --no-install-recommends \
+    libpq-dev \
     pandoc \
     pandoc-citeproc \
     texlive-base \
     texlive-latex-base \
     texlive-latex-recommended \
     texlive-fonts-recommended \
-    texlive-fonts-extra \
-    texlive-latex-extra
-
-# Clean up apt cache to reduce image size
-RUN apt-get clean && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Bioconductor manager
+# Installa il pacchetto BiocManager da CRAN
 RUN R -e "install.packages('BiocManager', repos='http://cran.rstudio.com/')"
 
-# Install CRAN packages
-RUN R -e "install.packages(c('ggplot2', 'dplyr', 'magrittr', 'ggrepel', 'RColorBrewer', 'gplots', 'DGEobj.utils', 'htmlwidgets', 'DT', 'tinytex', 'plotly', 'stringr', 'ggupset', 'tidyverse', 'dendextend', 'circlize', 'ComplexHeatmap', 'ggdendro', 'RColorBrewer'), repos='http://cran.rstudio.com/')"
+# Installa pacchetti CRAN richiesti
+RUN R -e "install.packages(c('ggplot2', 'dplyr', 'magrittr', 'ggrepel', 'RColorBrewer', 'gplots', 'DGEobj.utils', 'htmlwidgets', 'DT', 'tinytex', 'plotly', 'stringr', 'ggupset', 'tidyverse', 'dendextend', 'circlize', 'ComplexHeatmap', 'ggdendro'), repos='http://cran.rstudio.com/')"
 
-# Install Bioconductor packages
+# Installa pacchetti Bioconductor richiesti
 RUN R -e "BiocManager::install(c('edgeR', 'sva', 'Glimma', 'RUVSeq', 'DiffBind', 'ChIPseeker'))"
 
-# Set permissions for RStudio to work within Docker
+# Imposta permessi per RStudio
 RUN usermod -aG staff rstudio
 
-# Expose port for RStudio
+# Espone la porta 8787 per RStudio
 EXPOSE 8787
 
-# Add .Rprofile to load libraries automatically
-RUN echo "library(edgeR); library(ggplot2); library(dplyr); library(magrittr); library(ggrepel); library(RColorBrewer); library(gplots); library(sva); library(DGEobj.utils); library(htmlwidgets); library(DT); library(tinytex); library(plotly); library(stringr); library(ggupset); library(tidyverse); library(dendextend); library(circlize); library(ComplexHeatmap); library(ggdendro); library(Glimma); library(RUVSeq); library(DiffBind); library(ChIPseeker);" > /home/rstudio/.Rprofile
-
-# Set the default command to start RStudio
+# Comando di default per avviare RStudio
 CMD ["/init"]
+
 
