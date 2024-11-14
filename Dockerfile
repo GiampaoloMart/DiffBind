@@ -1,5 +1,5 @@
-# Use the official Rocker RStudio image as base
-FROM rocker/rstudio:latest
+# Use the official Rocker RStudio image as base with specific R version
+FROM rocker/rstudio:4.3.2
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -34,7 +34,7 @@ RUN R -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
 RUN R -e "\
     if (!require('BiocManager', quietly = TRUE)) \
         install.packages('BiocManager'); \
-    BiocManager::install(version = '3.18', ask = FALSE); \
+    BiocManager::install(update = FALSE, ask = FALSE); \
     BiocManager::install(c( \
         'edgeR', \
         'sva', \
@@ -45,9 +45,4 @@ RUN R -e "\
         'DiffBind', \
         'ChIPseeker' \
     ), update = FALSE, ask = FALSE)"
-
-
-# Comando di default per avviare RStudio
-CMD ["/init"]
-
 
