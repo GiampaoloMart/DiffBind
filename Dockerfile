@@ -1,6 +1,14 @@
 # Use the official Rocker RStudio image as base
 FROM rocker/rstudio:latest
 
+# Install system libraries (if needed for Bioconductor packages)
+RUN apt-get update && apt-get install -y \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install CRAN packages first
 RUN R -e "\
     install.packages(c( \
@@ -22,7 +30,7 @@ RUN R -e "\
         'ggdendro' \
     ))"
 
-# Set Bioconductor to version 3.20 (compatible with R 4.4)
+# Install BiocManager and set Bioconductor to version 3.20 (compatible with R 4.4)
 RUN R -e "if (!require('BiocManager', quietly = TRUE)) install.packages('BiocManager'); BiocManager::install(version = '3.20')"
 
 # Step 1: Install foundational Bioconductor dependencies
@@ -41,12 +49,10 @@ RUN R -e "\
         'Rsamtools' \
     ), ask = FALSE)"
 
-# Step 2: Install packages that depend on core libraries
+# Step 2: Install additional essential dependencies for the higher-level packages
 RUN R -e "\
     BiocManager::install(c( \
         'GenomicAlignments', \
-        'BSgenome', \
-        'rtracklayer', \
         'GO.db', \
         'GenomicFeatures', \
         'DESeq2', \
@@ -54,7 +60,7 @@ RUN R -e "\
         'edgeR' \
     ), ask = FALSE)"
 
-# Step 3: Install higher-level packages that rely on previous installations
+# Step 3: Install packages with additional dependencies on core libraries
 RUN R -e "\
     BiocManager::install(c( \
         'biomaRt', \
@@ -64,13 +70,15 @@ RUN R -e "\
         'Glimma', \
         'sva', \
         'ComplexHeatmap', \
+        'BSgenome', \
+        'rtracklayer', \
         'RUVSeq', \
         'DiffBind', \
         'systemPipeR', \
         'TxDb.Hsapiens.UCSC.hg19.knownGene' \
     ), ask = FALSE)"
 
-# Step 4: Install additional packages with complex dependencies
+# Step 4: Install remaining packages with complex dependencies
 RUN R -e "\
     BiocManager::install(c( \
         'ChIPseeker', \
@@ -81,6 +89,7 @@ RUN R -e "\
         'enrichplot', \
         'DGEobj.utils' \
     ), ask = FALSE)"
+
 
 
 
