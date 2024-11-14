@@ -9,52 +9,42 @@ RUN apt-get update && apt-get install -y \
     libfontconfig1-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install BiocManager
-RUN R -e "install.packages('BiocManager', repos='http://cran.rstudio.com/')"
-
-# Install required R packages
+# Install CRAN packages
 RUN R -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
-    BiocManager::install(update = FALSE, ask = FALSE); \
-    packages <- c( \
-    'edgeR', \
-    'ggplot2', \
-    'dplyr', \
-    'magrittr', \
-    'ggrepel', \
-    'RColorBrewer', \
-    'gplots', \
-    'sva', \
-    'DGEobj.utils', \
-    'htmlwidgets', \
-    'DT', \
-    'tinytex', \
-    'plotly', \
-    'stringr', \
-    'ggupset', \
-    'tidyverse', \
-    'dendextend', \
-    'circlize', \
-    'ComplexHeatmap', \
-    'ggdendro', \
-    'Glimma', \
-    'RUVSeq', \
-    'DiffBind', \
-    'ChIPseeker' \
-    ); \
-    for (pkg in packages) { \
-        tryCatch( \
-            { \
-                if (!require(pkg, character.only = TRUE)) { \
-                    BiocManager::install(pkg, update = FALSE, ask = FALSE) \
-                } \
-            }, \
-            error = function(e) { \
-                message(sprintf('Error installing %s: %s', pkg, e$message)) \
-            } \
-        ) \
-    }"
+    install.packages(c( \
+        'ggplot2', \
+        'dplyr', \
+        'magrittr', \
+        'ggrepel', \
+        'RColorBrewer', \
+        'gplots', \
+        'htmlwidgets', \
+        'DT', \
+        'tinytex', \
+        'plotly', \
+        'stringr', \
+        'ggupset', \
+        'tidyverse', \
+        'dendextend', \
+        'circlize', \
+        'ggdendro' \
+    ), dependencies=TRUE)"
 
-# The rocker/rstudio image already exposes port 8787 and sets up the necessary users
+# Install BiocManager and Bioconductor packages
+RUN R -e "\
+    if (!require('BiocManager', quietly = TRUE)) \
+        install.packages('BiocManager'); \
+    BiocManager::install(version = '3.18', ask = FALSE); \
+    BiocManager::install(c( \
+        'edgeR', \
+        'sva', \
+        'DGEobj.utils', \
+        'ComplexHeatmap', \
+        'Glimma', \
+        'RUVSeq', \
+        'DiffBind', \
+        'ChIPseeker' \
+    ), update = FALSE, ask = FALSE)"
 
 
 # Comando di default per avviare RStudio
