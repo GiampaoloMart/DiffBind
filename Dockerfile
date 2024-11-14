@@ -1,16 +1,8 @@
-# Use the official Rocker RStudio image as base with specific R version
-FROM rocker/rstudio:4.3.2
+# Use the official Rocker RStudio image as base
+FROM rocker/rstudio:latest
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libxml2-dev \
-    libcurl4-openssl-dev \
-    libssl-dev \
-    libfontconfig1-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install CRAN packages
-RUN R -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
+# Install CRAN packages first
+RUN R -e "\
     install.packages(c( \
         'ggplot2', \
         'dplyr', \
@@ -28,13 +20,12 @@ RUN R -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); \
         'dendextend', \
         'circlize', \
         'ggdendro' \
-    ), dependencies=TRUE)"
+    ))"
 
 # Install BiocManager and Bioconductor packages
 RUN R -e "\
     if (!require('BiocManager', quietly = TRUE)) \
         install.packages('BiocManager'); \
-    BiocManager::install(update = FALSE, ask = FALSE); \
     BiocManager::install(c( \
         'edgeR', \
         'sva', \
@@ -44,5 +35,5 @@ RUN R -e "\
         'RUVSeq', \
         'DiffBind', \
         'ChIPseeker' \
-    ), update = FALSE, ask = FALSE)"
+    ), ask = FALSE)"
 
