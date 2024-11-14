@@ -22,31 +22,33 @@ RUN R -e "\
         'ggdendro' \
     ))"
 
-# Install BiocManager and core Bioconductor dependencies
+# Update Bioconductor to the latest version
+RUN R -e "if (!require('BiocManager', quietly = TRUE)) install.packages('BiocManager'); BiocManager::install(version = 'devel')"
+
+# Install essential Bioconductor dependencies first
 RUN R -e "\
-    if (!require('BiocManager', quietly = TRUE)) \
-        install.packages('BiocManager'); \
     BiocManager::install(c( \
+        'AnnotationDbi', \
+        'BiocGenerics', \
+        'IRanges', \
+        'S4Vectors', \
         'XVector', \
         'Biostrings', \
         'GenomicRanges', \
-        'SparseArray', \
+        'SummarizedExperiment', \
         'DelayedArray', \
-        'KEGGREST', \
         'Rhtslib', \
         'Rsamtools', \
-        'SummarizedExperiment', \
-        'AnnotationDbi', \
         'GenomicAlignments', \
-        'rtracklayer', \
-        'BSgenome', \
-        'DESeq2', \
-        'GO.db' \
+        'BSgenome' \
     ), ask = FALSE)"
 
-# Install final Bioconductor packages
+# Install remaining Bioconductor packages
 RUN R -e "\
     BiocManager::install(c( \
+        'GO.db', \
+        'KEGGREST', \
+        'DESeq2', \
         'edgeR', \
         'sva', \
         'DGEobj.utils', \
@@ -54,6 +56,11 @@ RUN R -e "\
         'Glimma', \
         'RUVSeq', \
         'DiffBind', \
-        'ChIPseeker' \
+        'ChIPseeker', \
+        'rtracklayer', \
+        'GenomicFeatures', \
+        'systemPipeR', \
+        'TxDb.Hsapiens.UCSC.hg19.knownGene' \
     ), ask = FALSE)"
+
 
