@@ -1,53 +1,79 @@
-# Usa l'immagine ufficiale di RStudio e R
-FROM rocker/rstudio:latest
+# Use Ubuntu as base image
+FROM ubuntu:22.04
 
-# Aggiorna i pacchetti di sistema e installa le dipendenze necessarie, inclusi Git, patch, e libglpk-dev
-RUN apt-get update && \
-    apt-get install -y \
+# Avoid timezone prompt during installation
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Rome
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gdebi-core \
+    wget \
+    r-base \
+    r-base-dev \
     libcurl4-openssl-dev \
     libssl-dev \
     libxml2-dev \
-    libhdf5-dev \
-    zlib1g-dev \
-    libhdf5-serial-dev \
-    hdf5-tools \
-    gfortran \
+    libfontconfig1-dev \
+    libcairo2-dev \
+    libxt-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libfreetype6-dev \
     libpng-dev \
+    libtiff5-dev \
     libjpeg-dev \
-    libnetcdf-dev \
-    git \
-    patch \
-    libglpk-dev && \
-    rm -rf /var/lib/apt/lists/*
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Installa BiocManager per gestire i pacchetti Bioconductor
-RUN R -e "install.packages('BiocManager')"
+# Download and install RStudio Server
+RUN wget https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2023.12.0-369-amd64.deb && \
+    gdebi -n rstudio-server-2023.12.0-369-amd64.deb && \
+    rm rstudio-server-2023.12.0-369-amd64.deb
 
-# Installa devtools per poter installare pacchetti da GitHub
-RUN R -e "install.packages('devtools')"
+# Install BiocManager
+RUN R -e "install.packages('BiocManager', repos='http://cran.rstudio.com/')"
 
-# Installa il pacchetto hdf5r da GitHub
-RUN R -e "devtools::install_github('hhoeflin/hdf5r')" && \
-    R -e "install.packages(c('tidyverse', 'viridis', 'gghalves', 'cowplot', 'patchwork', 'gridExtra', 'parallel', 'stringi', 'stringr'))"
+# Install required R packages
+RUN R -e "BiocManager::install(c( \
+    'edgeR', \
+    'ggplot2', \
+    'dplyr', \
+    'magrittr', \
+    'ggrepel', \
+    'RColorBrewer', \
+    'gplots', \
+    'sva', \
+    'DGEobj.utils', \
+    'htmlwidgets', \
+    'DT', \
+    'tinytex', \
+    'plotly', \
+    'stringr', \
+    'ggupset', \
+    'tidyverse', \
+    'dendextend', \
+    'circlize', \
+    'ComplexHeatmap', \
+    'ggdendro', \
+    'Glimma', \
+    'RUVSeq', \
+    'DiffBind', \
+    'ChIPseeker' \
+))"
 
-# Installa pacchetti Bioconductor aggiuntivi, tra cui edgeR, sva, Glimma, RUVSeq, DiffBind, ChIPseeker
-RUN R -e "BiocManager::install(c('edgeR', 'sva', 'Glimma', 'RUVSeq', 'DiffBind', 'ChIPseeker', 'Seurat', 'SeuratObject', 'scran', 'scater', 'scDblFinder', 'SoupX', 'BiocGenerics', 'harmony'))"
+# Install orca for plotly static image export
+RUN wget https://github.com/plotly/orca/releases/download/v1.3.1/orca-1.3.1.AppImage -O /usr/local/bin/orca && \
+    chmod +x /usr/local/bin/orca
 
-# Installa pacchetti CRAN aggiuntivi mancanti
-RUN R -e "install.packages(c('ggplot2', 'dplyr', 'magrittr', 'ggrepel', 'RColorBrewer', 'gplots', 'DGEobj.utils', 'htmlwidgets', 'DT', 'tinytex', 'plotly', 'ggupset', 'dendextend', 'circlize', 'ComplexHeatmap', 'ggdendro'))"
-
-# Crea un utente per l'accesso a RStudio
-RUN useradd -m -s /bin/bash rstudio_user && \
-    echo "rstudio_user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-# Assegna la proprietà della directory all'utente rstudio_user
-RUN chown -R rstudio_user:rstudio_user /home/rstudio_user
-
-# Espone la porta 8787 per l'accesso a RStudio Server
+# Expose RStudio Server port
 EXPOSE 8787
 
-# Esegui RStudio come utente rstudio_user
-USER rstudio_user
+# Set default user password for RStudio
+ENV PASSWORD=rstudio
+
+# Start RStudio Server
+CMD ["/usr/lib/rstudio-server/bin/rserver", "--server-daemonize=0", "--auth-none=1"]
 
 
 # Comando di default per avviare RStudio
