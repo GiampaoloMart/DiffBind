@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libxml2-dev \
     zlib1g-dev \
+    libbz2-dev \
+    liblzma-dev \
+    libpcre2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install CRAN packages first
@@ -49,46 +52,44 @@ RUN R -e "\
         'Rsamtools' \
     ), ask = FALSE)"
 
-# Step 2: Install additional essential dependencies for the higher-level packages
+# Step 2: Install additional core packages required by complex packages
 RUN R -e "\
     BiocManager::install(c( \
         'GenomicAlignments', \
         'GO.db', \
         'GenomicFeatures', \
-        'DESeq2', \
         'genefilter', \
+        'ShortRead', \
         'edgeR' \
     ), ask = FALSE)"
 
-# Step 3: Install packages with additional dependencies on core libraries
+# Step 3: Install packages with dependencies on core libraries
 RUN R -e "\
     BiocManager::install(c( \
         'biomaRt', \
         'annotate', \
         'GOSemSim', \
         'DOSE', \
-        'Glimma', \
-        'sva', \
         'ComplexHeatmap', \
         'BSgenome', \
-        'rtracklayer', \
-        'RUVSeq', \
-        'DiffBind', \
-        'systemPipeR', \
-        'TxDb.Hsapiens.UCSC.hg19.knownGene' \
+        'rtracklayer' \
     ), ask = FALSE)"
 
-# Step 4: Install remaining packages with complex dependencies
+# Step 4: Install remaining packages
 RUN R -e "\
     BiocManager::install(c( \
-        'ChIPseeker', \
+        'systemPipeR', \
+        'TxDb.Hsapiens.UCSC.hg19.knownGene', \
         'GreyListChIP', \
-        'ShortRead', \
         'EDASeq', \
         'apeglm', \
+        'DiffBind', \
+        'RUVSeq', \
         'enrichplot', \
-        'DGEobj.utils' \
+        'DGEobj.utils', \
+        'DESeq2' \
     ), ask = FALSE)"
+
 
 
 
