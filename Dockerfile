@@ -22,10 +22,30 @@ RUN R -e "\
         'ggdendro' \
     ))"
 
-# Install BiocManager and Bioconductor packages
+# Install BiocManager and core Bioconductor dependencies
 RUN R -e "\
     if (!require('BiocManager', quietly = TRUE)) \
         install.packages('BiocManager'); \
+    BiocManager::install(c( \
+        'XVector', \
+        'Biostrings', \
+        'GenomicRanges', \
+        'SparseArray', \
+        'DelayedArray', \
+        'KEGGREST', \
+        'Rhtslib', \
+        'Rsamtools', \
+        'SummarizedExperiment', \
+        'AnnotationDbi', \
+        'GenomicAlignments', \
+        'rtracklayer', \
+        'BSgenome', \
+        'DESeq2', \
+        'GO.db' \
+    ), ask = FALSE)"
+
+# Install final Bioconductor packages
+RUN R -e "\
     BiocManager::install(c( \
         'edgeR', \
         'sva', \
