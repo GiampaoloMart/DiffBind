@@ -22,8 +22,8 @@ RUN R -e "\
         'ggdendro' \
     ))"
 
-# Update Bioconductor to the latest version
-RUN R -e "if (!require('BiocManager', quietly = TRUE)) install.packages('BiocManager'); BiocManager::install(version = 'devel')"
+# Set Bioconductor to a compatible version for R 4.4
+RUN R -e "if (!require('BiocManager', quietly = TRUE)) install.packages('BiocManager'); BiocManager::install(version = '3.20')"
 
 # Install essential Bioconductor dependencies first
 RUN R -e "\
@@ -62,5 +62,6 @@ RUN R -e "\
         'systemPipeR', \
         'TxDb.Hsapiens.UCSC.hg19.knownGene' \
     ), ask = FALSE)"
+
 
 
