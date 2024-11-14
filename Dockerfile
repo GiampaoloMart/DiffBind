@@ -22,10 +22,10 @@ RUN R -e "\
         'ggdendro' \
     ))"
 
-# Set Bioconductor to a compatible version for R 4.4
+# Set Bioconductor to version 3.20 (compatible with R 4.4)
 RUN R -e "if (!require('BiocManager', quietly = TRUE)) install.packages('BiocManager'); BiocManager::install(version = '3.20')"
 
-# Install essential Bioconductor dependencies first
+# Step 1: Install foundational Bioconductor dependencies
 RUN R -e "\
     BiocManager::install(c( \
         'AnnotationDbi', \
@@ -38,29 +38,48 @@ RUN R -e "\
         'SummarizedExperiment', \
         'DelayedArray', \
         'Rhtslib', \
-        'Rsamtools', \
-        'GenomicAlignments', \
-        'BSgenome' \
+        'Rsamtools' \
     ), ask = FALSE)"
 
-# Install remaining Bioconductor packages
+# Step 2: Install packages that depend on core libraries
 RUN R -e "\
     BiocManager::install(c( \
+        'GenomicAlignments', \
+        'BSgenome', \
+        'rtracklayer', \
         'GO.db', \
-        'KEGGREST', \
+        'GenomicFeatures', \
         'DESeq2', \
-        'edgeR', \
-        'sva', \
-        'DGEobj.utils', \
-        'ComplexHeatmap', \
+        'genefilter', \
+        'edgeR' \
+    ), ask = FALSE)"
+
+# Step 3: Install higher-level packages that rely on previous installations
+RUN R -e "\
+    BiocManager::install(c( \
+        'biomaRt', \
+        'annotate', \
+        'GOSemSim', \
+        'DOSE', \
         'Glimma', \
+        'sva', \
+        'ComplexHeatmap', \
         'RUVSeq', \
         'DiffBind', \
-        'ChIPseeker', \
-        'rtracklayer', \
-        'GenomicFeatures', \
         'systemPipeR', \
         'TxDb.Hsapiens.UCSC.hg19.knownGene' \
+    ), ask = FALSE)"
+
+# Step 4: Install additional packages with complex dependencies
+RUN R -e "\
+    BiocManager::install(c( \
+        'ChIPseeker', \
+        'GreyListChIP', \
+        'ShortRead', \
+        'EDASeq', \
+        'apeglm', \
+        'enrichplot', \
+        'DGEobj.utils' \
     ), ask = FALSE)"
 
 
